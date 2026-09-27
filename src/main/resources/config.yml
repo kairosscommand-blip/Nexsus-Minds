@@ -1,0 +1,100 @@
+# NexusMinds -- mob AI + speech overhaul.
+#
+# Every mob this plugin manages gets a permanent personality (rolled once, at spawn) that decides
+# how readily it flees, and real persistent-memory behavior: a grudge against whoever last hurt
+# it that outlives vanilla's normal short-lived aggro, pack tactics against a shared target, and
+# garbled "speech" tied to its own combat state. Villagers and pillagers get their own separate,
+# right-click-triggered dialogue. All of it -- both the hostile lines and the villager/pillager
+# dialogue -- is a self-contained, config-driven line bank: no external AI model, no network call,
+# same standalone convention every other Nexus plugin follows.
+
+enabled: true
+
+# Which managed mob types this plugin actually touches. Turning one off leaves that mob type
+# entirely on vanilla's own AI.
+applies-to:
+  zombie: true
+  skeleton: true
+  pillager: true
+
+personality:
+  # Relative odds a freshly-spawned mob rolls each personality. Don't need to sum to 1 -- they're
+  # normalized automatically. An ALPHA is rare on purpose.
+  weights:
+    COWARD: 0.20
+    BALANCED: 0.50
+    AGGRESSIVE: 0.25
+    ALPHA: 0.05
+  # Health fraction (0.0-1.0) at or below which each personality disengages and flees instead of
+  # fighting on. ALPHA's 0.0 means it never flees at all.
+  flee-health-fraction:
+    COWARD: 0.60
+    BALANCED: 0.35
+    AGGRESSIVE: 0.15
+    ALPHA: 0.0
+
+grudge:
+  # How far (in blocks) a mob can detect its grudge target and resume the chase.
+  detection-radius: 24
+  # How long a grudge lasts before it expires and the mob forgets who hurt it.
+  duration-seconds: 1800
+
+backup-call:
+  # How far a hurt mob looks for same-kind allies to call in.
+  radius: 16
+  # Most allies a single hit can call in at once.
+  max-allies-called: 4
+
+pack-tactics:
+  enabled: true
+  # How often (in ticks) the "who's closest to the target" scan re-runs per mob -- not every
+  # tick, to keep this cheap with a lot of mobs on screen.
+  scan-interval-ticks: 20
+  # How far to the side (in blocks) a flanking mob positions itself from the shared target.
+  flank-offset-blocks: 4
+
+hazard-avoidance:
+  # If true, every custom movement this plugin issues checks the one block directly ahead for
+  # lava first and sidesteps around it. This is a modest, honest safeguard -- not a full
+  # path-safety guarantee -- see SafeMovement.java's own comment.
+  enabled: true
+
+speech:
+  hostile:
+    enabled: true
+    # How long (in seconds) a hostile mob's garbled line stays floating above it.
+    display-seconds: 3
+  villager-pillager:
+    enabled: true
+    # Cooldown (in seconds) before the same villager/pillager will speak to the same player again.
+    cooldown-seconds: 15
+
+dialogue:
+  hostile-templates:
+    aggro: ["I SEE YOU", "THERE YOU ARE", "FRESH MEAT", "NO ESCAPE"]
+    panic: ["TOO STRONG", "RETREAT", "NOT WORTH IT", "I YIELD"]
+    backup-call: ["TO ME", "REINFORCEMENTS", "SWARM HIM", "ALL OF YOU"]
+    death: ["...NO...", "IT ENDS", "AVENGE ME", "STATIC"]
+
+  villager:
+    NONE: ["Just passing through.", "Lovely weather today.", "Mind the golem, it's twitchy."]
+    FARMER: ["The crops are coming in nicely this season.", "Watch the wheat, it's almost ready.", "I traded my last carrot an hour ago."]
+    LIBRARIAN: ["Careful with that bookshelf.", "I've read every book in this village twice.", "Enchanting's more art than science, you know."]
+    CLERIC: ["May the light watch over your travels.", "I've got a few remedies, if you're hurting.", "The nether's no place for the faint of heart."]
+    ARMORER: ["That armor won't forge itself.", "Bring me iron and I'll make it worth your while.", "A good breastplate outlasts its owner."]
+    WEAPONSMITH: ["Sharp blades, fair prices.", "Careful swinging that thing around.", "I can feel a storm coming in my anvil arm."]
+    TOOLSMITH: ["A dull axe is a dangerous axe.", "I fix more tools than I sell, some days.", "Come back when you need a new pickaxe."]
+    FISHERMAN: ["The lake's been generous this week.", "Nothing beats fresh fish over a fire.", "Watch for drowned near the docks at night."]
+    SHEPHERD: ["The flock's grazing just past the hill.", "Wool's good this time of year.", "Wolves have been circling lately -- mind yourself."]
+    FLETCHER: ["Feathers and flint, that's the trade.", "A good bow's worth more than the arrows.", "Careful, that fletching table bites."]
+    CARTOGRAPHER: ["I've mapped further than most dare go.", "The ocean monuments aren't on every chart, you know.", "Lost? I can fix that, for a price."]
+    LEATHERWORKER: ["Fresh hides, freshly tanned.", "A good pair of boots saves your knees.", "I don't ask where the leather comes from."]
+    MASON: ["Stone's honest work.", "Every wall tells you something, if you look.", "Bring me terracotta and I'll make something of it."]
+    BUTCHER: ["Best cuts in the village, guaranteed.", "Don't let the smell put you off.", "A fair trade for a fair cut."]
+    NITWIT: ["Hmm?", "Oh, hello.", "*shrugs*"]
+
+  pillager:
+    - "You're outnumbered."
+    - "The captain sees everything."
+    - "Run while you still can."
+    - "This land is ours now."
